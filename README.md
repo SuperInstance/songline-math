@@ -1,10 +1,16 @@
 # songline-math
 
-Mathematics of navigable knowledge graphs inspired by Australian Aboriginal songlines.
+> Australian Aboriginal songline navigation as graph theory — pathfinding, topological analysis, and evolving traditions.
 
-Songlines are Australian Aboriginal navigation systems — songs that encode geography. This package implements the **mathematics** of navigable knowledge graphs: paths through information that you can sing (traverse) to reach any destination.
+## What This Does
 
-## Installation
+`songline-math` implements navigable knowledge graphs inspired by Australian Aboriginal songlines — songs that encode geography so you can navigate by singing. It provides a `SonglineGraph` class that combines graph construction, pathfinding (with "dreamtime" fallback for disconnected graphs), convergence hub detection (corroborees), persistent homology (Betti numbers), and evolutionary optimization of routes. Use it for knowledge graph navigation, semantic routing, multi-agent pathfinding, or teaching topological data analysis.
+
+## The Cultural Root
+
+Australian Aboriginal songlines (also called song cycles or dreaming tracks) are routes through the landscape encoded in song, dance, and story. By singing the song in sequence, a person can navigate vast distances across the continent — each verse describing a landmark, water source, or geographical feature. The mathematical insight: **a songline is a weighted path through a knowledge graph** where nodes are waypoints (knowledge) and verses (edges) encode traversal instructions. When no direct path exists, "dreamtime" traversal hops through knowledge-space proximity — like finding a route by landmarks you can see, even without a marked trail.
+
+## Install
 
 ```bash
 npm install songline-math
@@ -17,142 +23,165 @@ import { SonglineGraph } from "songline-math";
 
 // Build a knowledge graph
 const sg = new SonglineGraph();
-sg.addWaypoint("home", [0, 0]);
-sg.addWaypoint("mountain", [10, 0]);
-sg.addWaypoint("river", [10, 5]);
-sg.addWaypoint("ocean", [5, 10]);
+sg.addWaypoint("origin", [0, 0]);
+sg.addWaypoint("river", [1, 0]);
+sg.addWaypoint("mountain", [2, 1]);
+sg.addWaypoint("coast", [3, 0]);
+sg.addVerse("origin", "river", 1.0);
+sg.addVerse("river", "mountain", 1.5);
+sg.addVerse("mountain", "coast", 1.0);
+sg.addVerse("origin", "coast", 4.0);  // Long way around
 
-sg.addVerse("home", "mountain", 1.0);
-sg.addVerse("mountain", "river", 1.5);
-sg.addVerse("river", "ocean", 2.0);
-sg.addVerse("home", "ocean", 10.0); // long way around
-
-// Navigate: "sing your way" from home to ocean
-const path = sg.sing("home", "ocean");
-console.log(path.path);   // ["home", "mountain", "river", "ocean"]
-console.log(path.cost);   // 4.5
+// Navigate by singing
+const path = sg.sing("origin", "coast");
+console.log(path.path);     // ["origin", "river", "mountain", "coast"]
+console.log(path.cost);     // 3.5
 console.log(path.dreamtime); // false
 
-// Build and register songs (paths through the graph)
-sg.buildSong(["home", "mountain", "river"], "mountain-song");
-sg.buildSong(["home", "ocean"], "coastal-song");
+// Register songs (routes)
+sg.buildSong(["origin", "river", "mountain"]);
+sg.buildSong(["origin", "coast"]);
 
-// Find corroborees — where multiple songlines converge
-const hubs = sg.corroborees();
-console.log(hubs); // convergence at "home"
+// Find corroborees (convergence hubs)
+const corroborees = sg.corroborees();
+const clusters = sg.clusters(2);
+const hubs = sg.hubs(3);
 
-// Dreamtime topology — persistent homology of knowledge space
-const topology = sg.topology(5.0);
-console.log(topology); // { b0: 1, b1: 0 }
+// Topological analysis
+const topo = sg.topology(1.5);
+console.log(`β₀ = ${topo.b0}, β₁ = ${topo.b1}`);
 
-// Evolve a tradition of songs
-const tradition = sg.evolve("my-tradition", 10);
-console.log(tradition.generation); // 10
+// Evolutionary optimization
+const tradition = sg.evolve("navigation-tradition", 20);
+const fittest = sg.getFittest(tradition);
+console.log(`Fittest song cost: ${fittest.score}`);
 ```
 
-## Modules
+## API Reference
 
-### Song (`song`)
+### Types
 
-Core data structures for songlines:
-
-- **Waypoint**: A node with coordinates in knowledge space
-- **Verse**: An edge encoding traversal instructions
-- **Song**: An ordered sequence of waypoints connected by verses
-
+#### `Waypoint`
 ```typescript
-import { buildGraph, buildSongFromPath, reverseSong } from "songline-math";
-
-const graph = buildGraph(waypoints, verses);
-const song = buildSongFromPath(graph, ["A", "B", "C"], "my-song");
-const reversed = reverseSong(song);
+interface Waypoint {
+  id: string;
+  coordinates: number[];
+  metadata?: Record<string, unknown>;
+}
 ```
 
-### Navigation (`navigation`)
-
-Pathfinding through knowledge graphs using songline algorithms:
-
-- **singPath**: Find paths preferring well-known territory (high-connectivity nodes)
-- **dreamtimeTraversal**: Always finds a path, even in disconnected graphs
-- **navigability**: Fraction of node pairs with paths between them
-
+#### `Verse`
 ```typescript
-import { singPath, dreamtimeTraversal, navigability } from "songline-math";
-
-const path = singPath(graph, "start", "end");
-// If no normal path exists, automatically uses dreamtime
+interface Verse {
+  from: string;
+  to: string;
+  weight: number;
+  metadata?: Record<string, unknown>;
+}
 ```
 
-### Corroboree (`corroboree`)
-
-Song convergence and graph clustering:
-
-- **findCorroborees**: Find waypoints where multiple songs converge
-- **clusterBySongs**: Cluster nodes by shared songline membership
-- **findHubs**: Find high-degree knowledge hubs
-- **modularity**: Evaluate clustering quality
-
+#### `Song`
 ```typescript
-import { findCorroborees, clusterBySongs } from "songline-math";
-
-const hubs = findCorroborees(songs);
-const clusters = clusterBySongs(songs, 2);
+interface Song {
+  id: string;
+  waypoints: Waypoint[];
+  verses: Verse[];
+  metadata?: Record<string, unknown>;
+}
 ```
 
-### Dreamtime (`dreamtime`)
-
-Persistent homology on knowledge graphs:
-
-- **bettiNumbers**: β₀ (components) and β₁ (cycles) at a given scale
-- **persistentCycles**: Topological features that persist across scales
-- **persistenceBarcode**: Filtration evolution of topology
-
+#### `PathResult`
 ```typescript
-import { bettiNumbers, persistentCycles } from "songline-math";
-
-const betti = bettiNumbers(graph, threshold);
-const cycles = persistentCycles(graph, 20);
+interface PathResult {
+  path: string[];
+  cost: number;
+  dreamtime: boolean;  // True if fallback traversal was used
+}
 ```
 
-### Tradition (`tradition`)
-
-Living collections of evolving songlines:
-
-- **createTradition**: Initialize a tradition from songs
-- **evolveGeneration**: Mutate, recombine, decay, and select
-- **computeFitness**: Score songs by navigability
-
+#### `Corroboree`
 ```typescript
-import { createTradition, evolveGeneration } from "songline-math";
-
-let tradition = createTradition("my-trad", songs);
-tradition = evolveGeneration(tradition, graph);
+interface Corroboree {
+  waypoint: Waypoint;
+  songIds: string[];
+  convergence: number;
+  avgWeight: number;
+}
 ```
 
-## API: SonglineGraph
+#### `BettiNumbers`
+```typescript
+interface BettiNumbers {
+  b0: number;  // Connected components
+  b1: number;  // Independent cycles
+}
+```
 
-The unified `SonglineGraph` class combines all modules:
+#### `Tradition`, `ScoredSong`, `EvolutionConfig`
+Evolutionary optimization types for song evolution.
 
-| Method | Description |
-|--------|-------------|
-| `addWaypoint(id, coords)` | Add a waypoint |
-| `addVerse(from, to, weight)` | Add a directed edge |
-| `sing(source, target)` | Navigate from source to target |
-| `buildSong(path)` | Build and register a song |
-| `corroborees()` | Find convergence hubs |
-| `topology(threshold)` | Compute Betti numbers |
-| `persistentCycles()` | Find persistent topological features |
-| `evolve(id, generations)` | Evolve a tradition |
-| `navigabilityScore` | Overall graph navigability (0–1) |
+### `SonglineGraph` class
 
-## Concepts
+#### Construction
+- `addWaypoint(id, coordinates, metadata?)` — Add a node
+- `addVerse(from, to, weight, metadata?)` — Add a directed edge
+- `getGraph()` → `KnowledgeGraph`
 
-- **Songline**: A path through a knowledge graph, like a song that encodes geography
-- **Waypoint**: A node with coordinates in abstract knowledge space
-- **Verse**: An edge connecting waypoints with traversal cost
-- **Corroboree**: A convergence point where multiple songlines meet
-- **Dreamtime**: The metaphysical topology — persistent homology revealing true structure
-- **Tradition**: A living collection of songlines that evolve over generations
+#### Navigation
+- `sing(source, target)` → `PathResult` — Songline pathfinding with dreamtime fallback
+- `reachable(source)` → `Set<string>` — All reachable waypoints
+- `hasPath(source, target)` → `boolean`
+- `navigabilityScore` → `number` (0–1) — Overall graph navigability
+
+#### Songs
+- `addSong(song)` / `buildSong(path, songId?)` — Register routes
+- `reverseSong(songId)` / `subSong(songId, start, end)` — Song operations
+- `songCost(songId)` → `number | null` — Total traversal cost
+
+#### Corroboree Analysis
+- `corroborees()` → `Corroboree[]` — Convergence hubs
+- `clusters(threshold?)` → `string[][]` — Waypoint clusters by shared songs
+- `songIntersection(idA, idB)` → `string[]` — Shared waypoints
+- `hubs(topN?)` → `{waypoint, degree}[]` — High-degree nodes
+
+#### Dreamtime (Topology)
+- `topology(threshold)` → `BettiNumbers` — β₀ and β₁
+- `persistentCycles(numSteps?)` → `PersistentCycle[]`
+- `barcode(numSteps?)` → `{threshold, b0, b1}[]`
+- `distances()` → `{ids, distances}`
+
+#### Evolution
+- `evolve(id, generations?, config?)` → `Tradition`
+- `getFittest(tradition)` → `ScoredSong | null`
+
+### Standalone Functions
+
+All submodules export their functions directly:
+- `singPath(graph, source, target)` — Core pathfinding
+- `dreamtimeTraversal(graph, source, target)` — Always finds a path
+- `findCorroborees(songs)`, `clusterBySongs(songs, threshold)`
+- `bettiNumbers(graph, threshold)`, `persistenceBarcode(graph, steps)`
+- `createTradition(id, songs, config?)`, `evolveGeneration(tradition, graph)`
+
+## How It Works
+
+**Pathfinding:** Uses Dijkstra-like traversal with a popularity bonus — nodes with more connections are preferred (like choosing well-known trails). When no path exists through normal edges, dreamtime traversal hops through knowledge-space proximity using greedy nearest-neighbor toward the target.
+
+**Corroborees:** Points where multiple songs share a waypoint, sorted by convergence (number of songs meeting). Uses union-find for clustering.
+
+**Persistent Homology:** Builds a Vietoris-Rips complex from waypoint coordinates at increasing distance thresholds. Tracks when connected components merge (β₀ decreases) and when cycles form/fill (β₁ changes). Persistent cycles that survive across many scales are "real" features, not noise.
+
+**Evolution:** Creates a population of songs, mutates them (random waypoint swaps), and selects by fitness (lower cost = better). Uses tournament selection and recombination.
+
+## The Math
+
+**Betti Numbers:** β₀ counts connected components, β₁ counts independent cycles in the Vietoris-Rips complex at threshold ε.
+
+**Persistent Homology:** A filtration of simplicial complexes K₀ ⊆ K₁ ⊆ ... ⊆ Kₙ tracks topological features across scales. A feature born at ε_b and dying at ε_d has persistence = ε_d − ε_b.
+
+**Modularity:** Q = (1/2m) Σ_{ij} [A_{ij} − k_i·k_j/(2m)] δ(c_i, c_j) where m = total edges, k = degree, c = community.
+
+**Navigability:** Fraction of node pairs that have a path between them.
 
 ## License
 
