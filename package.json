@@ -1,0 +1,55 @@
+{
+  "name": "songline-math",
+  "version": "0.1.0",
+  "description": "Mathematics of navigable knowledge graphs inspired by Australian Aboriginal songlines — paths through information you can sing (traverse) to reach any destination.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./song": {
+      "import": "./dist/song.js",
+      "types": "./dist/song.d.ts"
+    },
+    "./navigation": {
+      "import": "./dist/navigation.js",
+      "types": "./dist/navigation.d.ts"
+    },
+    "./corroboree": {
+      "import": "./dist/corroboree.js",
+      "types": "./dist/corroboree.d.ts"
+    },
+    "./dreamtime": {
+      "import": "./dist/dreamtime.js",
+      "types": "./dist/dreamtime.d.ts"
+    },
+    "./tradition": {
+      "import": "./dist/tradition.js",
+      "types": "./dist/tradition.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "songline",
+    "knowledge-graph",
+    "navigation",
+    "graph-theory",
+    "topology",
+    "persistent-homology",
+    "aboriginal",
+    "pathfinding"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "typescript": "^5.9.3"
+  }
+}
