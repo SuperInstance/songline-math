@@ -1,6 +1,6 @@
 {
   "name": "songline-math",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Mathematics of navigable knowledge graphs inspired by Australian Aboriginal songlines \u2014 paths through information you can sing (traverse) to reach any destination.",
   "type": "module",
   "main": "dist/index.js",
